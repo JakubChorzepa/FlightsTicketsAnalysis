@@ -5,12 +5,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
-import calendar
+import datetime
 
-departureDate = ["2023-06-29",  "2023-07-29", "2023-07-29"]
-returnDate = ["2023-07-06", "2023-08-29", "2023-09-29"]
+# specifying date range for scraping
+today = datetime.date.today()
+endDate = datetime.date(today.year, 6, 4)
 
-# data dictionary
+# flight data dictionary
 data = {
    'priceList': [],
    'departureOperatorList': [],
@@ -19,19 +20,24 @@ data = {
    'returnDateList': [],
 }
 
+currDate = today
 
-for i in range(len(departureDate)):
-  print("iteration: ", i)
+while currDate <= endDate:
+  # format date to YYYY-DD-MM format
+  departureDate = currDate.strftime("%Y-%m-%d")
+  returnDate = (currDate + datetime.timedelta(days=2)).strftime("%Y-%m-%d")
+  print(returnDate)
+  
   driver = webdriver.Chrome()
 
   url = "https://www.kayak.pl/flights/KRK-ROM/{departureDate}/{returnDate}-flexible-2days?sort=bestflight_a".format(
-      departureDate=departureDate[i], 
-      returnDate=returnDate[i]
+      departureDate=departureDate, 
+      returnDate=returnDate,
    )
   
   driver.get(url)
 
-  sleep(5)
+  sleep(10)
   
   cookiesPopupAcceptXPath = '//button[@class = "Iqt3 Iqt3-mod-stretch Iqt3-mod-bold Button-No-Standard-Style Iqt3-mod-variant-outline Iqt3-mod-theme-base Iqt3-mod-shape-rounded-small Iqt3-mod-shape-mod-default Iqt3-mod-spacing-default Iqt3-mod-size-small"]'
 
@@ -88,14 +94,16 @@ for i in range(len(departureDate)):
       except IndexError:
          data['returnOperatorList'].append(operatorsSplit[0])  
 
-      data['departureDateList'].append(departureDate[i]) 
-      data['returnDateList'].append(returnDate[i])
+      data['departureDateList'].append(departureDate) 
+      data['returnDateList'].append(returnDate)
+  currDate += datetime.timedelta(days=1)
 
 driver.quit()
 
+print(data)
+
 # Data to data frame
 df = pd.DataFrame(data)
-print(df)
 
 df.to_csv("./data.csv", index=True)
 
