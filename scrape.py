@@ -6,10 +6,11 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 import datetime
+import re
 
 # specifying date range for scraping
 today = datetime.date.today()
-endDate = datetime.date(today.year, 6, 4)
+endDate = datetime.date(today.year, 6, 30)
 
 # flight data dictionary
 data = {
@@ -36,8 +37,7 @@ while currDate <= endDate:
    )
   
   driver.get(url)
-
-  sleep(10)
+  sleep(5)
   
   cookiesPopupAcceptXPath = '//button[@class = "Iqt3 Iqt3-mod-stretch Iqt3-mod-bold Button-No-Standard-Style Iqt3-mod-variant-outline Iqt3-mod-theme-base Iqt3-mod-shape-rounded-small Iqt3-mod-shape-mod-default Iqt3-mod-spacing-default Iqt3-mod-size-small"]'
 
@@ -75,10 +75,14 @@ while currDate <= endDate:
       # Prices
       price = elementSoup.find("div", {"class": "f8F1-price-text"}).text
       price = price.split("z")[0]
+      # remove spaces from price
+      price = re.sub(r"\s+", '', price)
+      print(price)
       try:
         data['priceList'].append(int(price))
       except ValueError:
-         pass
+         print("Price cannot be converted to integer")
+         break;
       
       # Operators
       operators = elementSoup.find("div", {"class": "J0g6-operator-text"}).text
