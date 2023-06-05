@@ -42,7 +42,14 @@ while currDate <= endDate:
   
   cookiesPopupAcceptXPath = '//button[@class = "Iqt3 Iqt3-mod-stretch Iqt3-mod-bold Button-No-Standard-Style Iqt3-mod-variant-outline Iqt3-mod-theme-base Iqt3-mod-shape-rounded-small Iqt3-mod-shape-mod-default Iqt3-mod-spacing-default Iqt3-mod-size-small"]'
 
-  WebDriverWait(driver, timeout=50).until(lambda d: d.find_elements(By.XPATH, cookiesPopupAcceptXPath) != [])
+  # wait for cookies popup to appear
+  try:
+   WebDriverWait(driver, timeout=50).until(lambda d: d.find_elements(By.XPATH, cookiesPopupAcceptXPath) != [])
+  except TimeoutException as e:
+   print("cookies popup loading timeout")
+   print(e)
+   driver.quit()
+   break
   
   driver.find_element(By.XPATH, cookiesPopupAcceptXPath).click()
 
@@ -51,7 +58,7 @@ while currDate <= endDate:
   # check if progress bar is on website 
   isProgressBarOnWebsite = driver.find_elements(By.XPATH, progressBarXPath) != []
 
-  # if progress bar is not on website, try again the loop
+  # if progress bar is not on website, try again loading site
   if(not isProgressBarOnWebsite):
      print("no progress bar on website")
      continue
@@ -114,7 +121,7 @@ driver.quit()
 
 print(data)
 
-# Data to data frame
+# Add data to data frame
 df = pd.DataFrame(data)
 
 df.to_csv("./data.csv", index=True)
