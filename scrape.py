@@ -10,7 +10,7 @@ import re
 
 # specifying date range for scraping
 today = datetime.date.today()
-endDate = datetime.date(today.year, 6, 30)
+endDate = datetime.date(today.year, 12, 31)
 
 # flight data dictionary
 data = {
@@ -19,6 +19,7 @@ data = {
    'returnOperatorList': [],
    'departureDateList': [],
    'returnDateList': [],
+   'daysToFlight': [],
 }
 
 currDate = today
@@ -41,7 +42,7 @@ while currDate <= endDate:
   
   cookiesPopupAcceptXPath = '//button[@class = "Iqt3 Iqt3-mod-stretch Iqt3-mod-bold Button-No-Standard-Style Iqt3-mod-variant-outline Iqt3-mod-theme-base Iqt3-mod-shape-rounded-small Iqt3-mod-shape-mod-default Iqt3-mod-spacing-default Iqt3-mod-size-small"]'
 
-  WebDriverWait(driver, timeout=30).until(lambda d: d.find_elements(By.XPATH, cookiesPopupAcceptXPath) != [])
+  WebDriverWait(driver, timeout=50).until(lambda d: d.find_elements(By.XPATH, cookiesPopupAcceptXPath) != [])
   
   driver.find_element(By.XPATH, cookiesPopupAcceptXPath).click()
 
@@ -50,15 +51,19 @@ while currDate <= endDate:
   # check if progress bar is on website 
   isProgressBarOnWebsite = driver.find_elements(By.XPATH, progressBarXPath) != []
 
-  # wait for progress bar loading end if it is on website
-  if(isProgressBarOnWebsite):  
-   try:
-      WebDriverWait(driver, timeout=20).until(lambda d:  d.find_element(By.XPATH, progressBarXPath).text == "Wyniki gotowe.")
-   except TimeoutException as e:
-      print("progress bar loading timeout")
-      print(e)
-      driver.quit()
-      break 
+  # if progress bar is not on website, try again the loop
+  if(not isProgressBarOnWebsite):
+     print("no progress bar on website")
+     continue
+
+  # wait for progress bar loading end if it is on website 
+  try:
+   WebDriverWait(driver, timeout=50).until(lambda d:  d.find_element(By.XPATH, progressBarXPath).text == "Wyniki gotowe.")
+  except TimeoutException as e:
+   print("progress bar loading timeout")
+   print(e)
+   driver.quit()
+   break 
 
   print("progress bar loaded")
 
@@ -100,6 +105,9 @@ while currDate <= endDate:
 
       data['departureDateList'].append(departureDate) 
       data['returnDateList'].append(returnDate)
+
+      # count and add days to flight
+      data['daysToFlight'].append((currDate - today).days)
   currDate += datetime.timedelta(days=1)
 
 driver.quit()
