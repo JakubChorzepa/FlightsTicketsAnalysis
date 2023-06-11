@@ -46,14 +46,21 @@ print(priceMeanByMonth)
 
 # chart
 plt.bar(priceMeanByMonth.index, priceMeanByMonth["Price"])
+
 plt.title("Wykres średnich cen zależny od miesiąca")
 plt.xlabel("Miesiąc")
 plt.ylabel("Średnia cena")
 plt.show()
 
 # %%
-# most frequent operator from 100 cheapest flights
+# most frequent operator from 200 cheapest flights
+cheapestFlights = df.sort_values("Price").head(200)
+cheapestFlightsDepartureOperator = cheapestFlights["DepartureOperator"].value_counts()
+cheapestFlightsReturnOperator = cheapestFlights["ReturnOperator"].value_counts()
+operatorsSum = cheapestFlightsDepartureOperator.add(cheapestFlightsReturnOperator, fill_value = 0)
 
-cheapestFlights = df.sort_values("Price").head(100)
-cheapestFlights = cheapestFlights.groupby("DepartureOperator").count()
-print(cheapestFlights)
+plt.bar(operatorsSum.index, operatorsSum)
+plt.title("Wykres operatorów pojawiających się w 200 najtańszych lotach")
+plt.xlabel("Operator")
+plt.ylabel("Liczba")
+plt.show()
